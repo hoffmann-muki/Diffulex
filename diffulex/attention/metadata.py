@@ -14,6 +14,14 @@ class AttnMetaDataBase:
     slot_mapping: torch.Tensor | None = None
     context_lens: torch.Tensor | None = None
     block_tables: torch.Tensor | None = None
+    page_block_size: int = 32
+    attn_type: str = "block_attention"
+    diffusion_block_size: int = 32
+    decode_mode: str = "static"
+    
+    @property
+    def num_seqs(self) -> int:
+        return len(self.cu_seqlens_q) - 1
 
 
 FN_TYPE_AttnMetaDataFetch = Callable[[], AttnMetaDataBase]

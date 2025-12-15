@@ -434,5 +434,4 @@ class D2FSequence(SequenceBase):
             )
             self.diffusion_blocks[-1].suf_block = current_block
             self.token_ids += diffusion_seq
-            self.num_tokens += added_num_tokens
             self.diffusion_blocks.append(current_block)

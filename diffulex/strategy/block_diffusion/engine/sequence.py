@@ -116,6 +116,14 @@ class BDSequence(SequenceBase):
     def num_blocks_in_active_diffusion_block(self) -> int:
         return self.diffusion_block_size // self.block_size
     
+    @property
+    def cached_num_tokens(self) -> int:
+        return sum(block.size for block in self.diffusion_blocks if block.is_in_cache)
+    
+    @property
+    def cached_or_caching_num_tokens(self) -> int:
+        return sum(block.size for block in self.diffusion_blocks if block.is_to_cache or block.is_in_cache)
+    
     def diffusion_decoding_inputs(self) -> tuple[list[int], list[int], int]:
         return (
             self.active_block_token_ids,
@@ -133,9 +141,7 @@ class BDSequence(SequenceBase):
         
         # Calculate prefix blocks and padding
         num_prefix_blocks = self.prefix_len // block_size
-        self.pad_prefix_len = block_size - (self.prefix_len % block_size)
-        if self.prefix_len % block_size == 0:
-            self.pad_prefix_len = 0
+        self.pad_prefix_len = 0 if self.prefix_len % block_size == 0 else block_size - (self.prefix_len % block_size)
         
         # Add mask tokens for the last prefix block
         self.extend_mask_tokens(self.pad_prefix_len)
