@@ -58,7 +58,10 @@ if __name__ == "__main__":
     sampling_params = SamplingParams(temperature=0.0, max_tokens=256)
     
     dataset = load_dataset("gsm8k", "main", split="test")["question"][:10]
-    prompts = [tokenizer.apply_chat_template(p, tokenize=False) for p in tqdm(dataset)]
+    prompts = [
+        FEW_SHOTS + f"<|im_start|>user\nQuestion: {question}\nAnswer:<|im_end|>\n<|im_start|>assistant\n"
+        for question in tqdm(dataset)
+    ]
     
     output_file = "log/profiles/perf_dvllm_dream_7B.json"
     if os.path.exists(output_file):

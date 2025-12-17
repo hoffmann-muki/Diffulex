@@ -9,7 +9,7 @@ import torch
 from diffulex.config import Config
 from diffulex.engine.sequence import SequenceBase
 from diffulex.strategy.d2f.engine.sequence import D2FSequence
-from diffulex.attention.metadata import set_fetch_fn_for_attn_metadata
+from diffulex.attention.metadata import set_fetch_fn_for_attn_metadata, set_warming_up, reset_warming_up
 from diffulex.engine.model_runner import AutoModelRunner, ModelRunnerBase
 from diffulex.strategy.d2f.attention.metadata import fetch_d2f_attn_metadata, set_d2f_attn_metadata, reset_d2f_attn_metadata
 
@@ -27,6 +27,7 @@ class D2FModelRunner(ModelRunnerBase):
 
     def warmup_model(self):
         print("Warming up model...")
+        set_warming_up(True)
         torch.cuda.empty_cache()
         torch.cuda.reset_peak_memory_stats()
         max_num_batched_tokens, max_model_len = (
@@ -40,6 +41,7 @@ class D2FModelRunner(ModelRunnerBase):
         for seq in seqs:
             seq.post_process()
         torch.cuda.empty_cache()
+        reset_warming_up()
 
     def prepare_prefill(self, seqs: list[D2FSequence]):
         input_ids: list[int] = []

@@ -9,7 +9,7 @@ import torch
 from diffulex.config import Config
 from diffulex.engine.sequence import SequenceBase
 from diffulex.strategy.block_diffusion.engine.sequence import BDSequence
-from diffulex.attention.metadata import set_fetch_fn_for_attn_metadata
+from diffulex.attention.metadata import set_fetch_fn_for_attn_metadata, set_warming_up, reset_warming_up
 from diffulex.engine.model_runner import AutoModelRunner, ModelRunnerBase
 from diffulex.strategy.block_diffusion.attention.metadata import fetch_bd_attn_metadata, set_bd_attn_metadata, reset_bd_attn_metadata
 
@@ -26,6 +26,7 @@ class BDModelRunner(ModelRunnerBase):
         
     def warmup_model(self):
         print("Warming up model...")
+        set_warming_up(True)
         torch.cuda.empty_cache()
         torch.cuda.reset_peak_memory_stats()
         max_num_batched_tokens, max_model_len = (
@@ -39,6 +40,7 @@ class BDModelRunner(ModelRunnerBase):
         for seq in seqs:
             seq.post_process()
         torch.cuda.empty_cache()
+        reset_warming_up()
 
     def prepare_prefill(self, seqs: list[BDSequence]):
         input_ids: list[int] = []
@@ -129,9 +131,8 @@ class BDModelRunner(ModelRunnerBase):
             positions.extend(cur_positions)
             context_lens.append(cur_context_len)
 
-            seqlen = len(seq)
             seqlen_q = self.diffusion_block_size
-            seqlen_k = seqlen
+            seqlen_k = self.diffusion_block_size
             max_seqlen_q = max(seqlen_q, max_seqlen_q)
             max_seqlen_k = max(seqlen_k, max_seqlen_k)
             cu_seqlens_q.append(cu_seqlens_q[-1] + seqlen_q)
@@ -161,7 +162,7 @@ class BDModelRunner(ModelRunnerBase):
             max_seqlen_q=max_seqlen_q,
             max_seqlen_k=max_seqlen_k,
             block_tables=block_tables,
-            page_block_size=self.config.kvcache_page_size,
+            page_block_size=self.config.kvcache_block_size,
             diffusion_block_size=self.diffusion_block_size,
             kv_cache_layout=self.config.kv_cache_layout,
             need_kv_cache_store=need_kv_cache_store,
