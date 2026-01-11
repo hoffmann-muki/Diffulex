@@ -167,14 +167,19 @@ class DiffulexTPWorker:
             sampling_params = [sampling_params] * len(prompts)
         # Map internal seq_id -> input index to keep output order stable
         seqid_to_idx = {}
-        for idx, (prompt, sp) in enumerate(zip(prompts, sampling_params)):
-            sid = self.add_request(prompt, sp)
+        # Add all requests concurrently using async
+        add_tasks = [
+            self.add_request_async(prompt, sp) 
+            for prompt, sp in zip(prompts, sampling_params)
+        ]
+        seq_ids = await asyncio.gather(*add_tasks)
+        for idx, sid in enumerate(seq_ids):
             seqid_to_idx[sid] = idx
         outputs = [None] * len(prompts)
         prefill_throughput = decode_throughput = 0.
         n_steps = 0
         n_diff_steps = [-1] * len(prompts)
-        while not self.is_finished():
+        while not await self.is_finished_async():
             t = perf_counter()
             n_steps += 1
             output, num_tokens, is_prefill, cur_n_diff_steps, _ = await self.step_async()
