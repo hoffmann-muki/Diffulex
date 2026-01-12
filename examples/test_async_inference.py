@@ -74,8 +74,6 @@ def main() -> None:
     print("=" * 80)
 
     # Create Diffulex engine for async inference
-    # Diffulex factory returns DiffulexTPWorker when data_parallel_size=1
-    # The worker will handle distributed initialization internally
     print("\n[Initializing Diffulex engine...]")
     worker = Diffulex(
         model=args.model,

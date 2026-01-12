@@ -1,5 +1,6 @@
 import atexit
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 import torch.multiprocessing as mp
 
@@ -82,14 +83,25 @@ class DiffulexTPWorker:
 
     async def step_async(self):
         """Async version of step that runs model inference in a thread pool."""
-        seqs, is_prefill = self.scheduler.schedule()
-        sample_output = await self.model_runner.call_async("run", seqs, is_prefill)
-        n_diff_steps = self.scheduler.postprocess(seqs, sample_output)
-        outputs = [(seq.seq_id, seq.completion_token_ids) for seq in seqs if seq.is_finished]
-        num_tokens = sum(seq.num_tokens for seq in seqs) if is_prefill else sum(seq.new_tokens for seq in seqs)
-        # Diffusion decoding modifies tokens in-place; we currently don't stream intermediate edits
-        deltas = []
-        return outputs, num_tokens, is_prefill, n_diff_steps, deltas
+        # Schedule and postprocess must run in the same thread to avoid race conditions
+        # Run the entire step in executor to ensure scheduler operations are thread-safe
+        loop = asyncio.get_event_loop()
+        executor = getattr(self, '_step_executor', None)
+        if executor is None:
+            executor = ThreadPoolExecutor(max_workers=1)
+            self._step_executor = executor
+        
+        # Run the entire step in executor to ensure scheduler operations are thread-safe
+        def _step():
+            seqs, is_prefill = self.scheduler.schedule()
+            sample_output = self.model_runner.call("run", seqs, is_prefill)
+            n_diff_steps = self.scheduler.postprocess(seqs, sample_output)
+            outputs = [(seq.seq_id, seq.completion_token_ids) for seq in seqs if seq.is_finished]
+            num_tokens = sum(seq.num_tokens for seq in seqs) if is_prefill else sum(seq.new_tokens for seq in seqs)
+            deltas = []
+            return outputs, num_tokens, is_prefill, n_diff_steps, deltas
+        
+        return await loop.run_in_executor(executor, _step)
 
     def is_finished(self):
         return self.scheduler.is_finished()
@@ -167,13 +179,10 @@ class DiffulexTPWorker:
             sampling_params = [sampling_params] * len(prompts)
         # Map internal seq_id -> input index to keep output order stable
         seqid_to_idx = {}
-        # Add all requests concurrently using async
-        add_tasks = [
-            self.add_request_async(prompt, sp) 
-            for prompt, sp in zip(prompts, sampling_params)
-        ]
-        seq_ids = await asyncio.gather(*add_tasks)
-        for idx, sid in enumerate(seq_ids):
+        # Add requests synchronously to avoid race conditions with scheduler
+        # The actual async benefit comes from the inference steps, not request addition
+        for idx, (prompt, sp) in enumerate(zip(prompts, sampling_params)):
+            sid = self.add_request(prompt, sp)
             seqid_to_idx[sid] = idx
         outputs = [None] * len(prompts)
         prefill_throughput = decode_throughput = 0.
