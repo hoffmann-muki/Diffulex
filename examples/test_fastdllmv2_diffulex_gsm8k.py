@@ -5,7 +5,7 @@ import time
 import pandas as pd
 
 from tqdm import tqdm
-from datasets import load_dataset
+from datasets import load_dataset, load_from_disk
 from viztracer import VizTracer
 from transformers import AutoTokenizer
 
@@ -40,7 +40,7 @@ FEW_SHOTS = "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n"
 
 if __name__ == "__main__":
     model = "/home/hoffmuki/scratch/models/Fast_dLLM_v2_7B"
-    local_data_path = "/home/hoffmuki/scratch/LargeData/gsm8k"
+    local_data_path = "/home/hoffmuki/scratch/datasets/gsm8k/openai___gsm8k"
     LLM = Diffulex(
         model,
         use_lora=False,
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     sampling_params = SamplingParams(temperature=0.0, max_tokens=256)
     
     # dataset = load_dataset("gsm8k", "main", split="test")["question"][:10]
-    dataset = load_dataset(local_data_path, "main", split="test", trust_remote_code=True)["question"][:10]
+    dataset = load_from_disk(local_data_path)["test"]["question"][:10]
     prompts = [
         FEW_SHOTS + f"<|im_start|>user\nQuestion: {question}\nAnswer:<|im_end|>\n<|im_start|>assistant\n"
         for question in tqdm(dataset)
