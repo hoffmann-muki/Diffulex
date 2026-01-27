@@ -5,7 +5,7 @@ import time
 import pandas as pd
 
 from tqdm import tqdm
-from datasets import load_dataset, load_from_disk
+from datasets import load_dataset
 from viztracer import VizTracer
 from transformers import AutoTokenizer
 
@@ -60,7 +60,15 @@ if __name__ == "__main__":
     sampling_params = SamplingParams(temperature=0.0, max_tokens=256)
     
     # dataset = load_dataset("gsm8k", "main", split="test")["question"][:10]
-    dataset = load_from_disk(local_data_path)["test"]["question"][:10]
+    # Path to the folder containing .arrow files
+    data_base_path = "/home/hoffmuki/scratch/datasets/gsm8k/openai___gsm8k/main/0.0.0/cc7b047b6e5bb11b4f1af84efc572db110a51b3c"
+    dataset = load_dataset(
+        "arrow", 
+        data_files={
+            "test": f"{data_base_path}/gsm8k-test.arrow"
+        },
+        split="test"
+    )["question"][:10]
     prompts = [
         FEW_SHOTS + f"<|im_start|>user\nQuestion: {question}\nAnswer:<|im_end|>\n<|im_start|>assistant\n"
         for question in tqdm(dataset)
