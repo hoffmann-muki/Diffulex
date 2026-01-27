@@ -39,8 +39,8 @@ def summarize_profiling(csv_path: str) -> dict:
 FEW_SHOTS = "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n"
 
 if __name__ == "__main__":
-    model = "/data1/ckpts/Efficient-Large-Model/Fast_dLLM_v2_7B"
-    local_data_path = "/data1/LargeData/gsm8k"
+    model = "/home/hoffmuki/scratch/models/Fast_dLLM_v2_7B"
+    local_data_path = "/home/hoffmuki/scratch/LargeData/gsm8k"
     LLM = Diffulex(
         model,
         use_lora=False,
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         for question in tqdm(dataset)
     ]
     
-    output_file = "log/profiles/perf_dvllm_fastdllmv2_7B.json"
+    output_file = "/home/hoffmuki/scratch/log/profiles/perf_dvllm_fastdllmv2_7B.json"
     if os.path.exists(output_file):
         os.remove(output_file)
     # with VizTracer(output_file=output_file, file_info=True) as tracer:
