@@ -3,23 +3,19 @@ from __future__ import annotations
 import importlib
 from pathlib import Path
 
-# Import built-in models so their registrations run at import time.
-# Automatically import all Python files except auto_model and __init__
-_excluded_modules = {"auto_model", "__init__"}
-_model_modules = []
+# We define what is available, but we don't import it yet
+_model_modules = [
+    py_file.stem for py_file in Path(__file__).parent.glob("*.py")
+    if py_file.stem not in {"auto_model", "__init__"}
+]
 
-_current_dir = Path(__file__).parent
-for py_file in _current_dir.glob("*.py"):
-    module_name = py_file.stem
-    if module_name not in _excluded_modules:
-        try:
-            importlib.import_module(f".{module_name}", __name__)
-            _model_modules.append(module_name)
-        except Exception as e:
-            # Skip modules that fail to import
-            import warnings
-            warnings.warn(f"Failed to import {module_name}: {e}", ImportWarning)
+def __getattr__(name):
+    """Python 3.7+ magic method to load modules only when accessed."""
+    if name in _model_modules:
+        return importlib.import_module(f".{name}", __name__)
+    if name == "AutoModelForDiffusionLM":
+        from .auto_model import AutoModelForDiffusionLM
+        return AutoModelForDiffusionLM
+    raise AttributeError(f"module {__name__} has no attribute {name}")
 
-__all__ = _model_modules.copy()
-
-from .auto_model import AutoModelForDiffusionLM
+__all__ = _model_modules + ["AutoModelForDiffusionLM"]
