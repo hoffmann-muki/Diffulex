@@ -6,11 +6,11 @@ model_path = "/home/hoffmuki/scratch/models/Fast_dLLM_v2_7B"
 llm = Diffulex(
     model_path,
     model_name="fast_dllm_v2",  # or "dream", "llada", etc.
-    tensor_parallel_size=1,
-    data_parallel_size=1,
-    gpu_memory_utilization=0.75,
+    tensor_parallel_size=2,
+    data_parallel_size=2,
+    gpu_memory_utilization=0.5,
     max_model_len=2048,
-    decoding_strategy="block_diffusion",  # or "d2f", "fast_dllm"
+    decoding_strategy="fast_dllm",  # or "d2f", "fast_dllm"
     mask_token_id=151665,  # model-specific mask token ID
 )
 
