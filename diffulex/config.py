@@ -58,7 +58,7 @@ class Config:
             if not os.path.exists(self.lora_path):
                 print(f"Warning: LoRA path {self.lora_path} does not exist")
 
-        self.hf_config = AutoConfig.from_pretrained(self.model, trust_remote_code=True)
+        self.hf_config = AutoConfig.from_pretrained(self.model, trust_remote_code=True, local_files_only=True)
         cfg_max_model_len = self.hf_config.max_position_embeddings if hasattr(self.hf_config, "max_position_embeddings") else self.hf_config.max_sequence_length
         self.max_model_len = min(self.max_model_len, cfg_max_model_len)
         assert self.max_num_batched_tokens >= self.max_model_len

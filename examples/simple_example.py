@@ -16,7 +16,7 @@ if __name__ == '__main__':
     )
 
     # Load tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True, local_files_only=True)
 
     # Set sampling parameters
     sampling_params = SamplingParams(
