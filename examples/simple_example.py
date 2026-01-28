@@ -13,6 +13,7 @@ if __name__ == '__main__':
         max_model_len=2048,
         decoding_strategy="fast_dllm",  # or "d2f", "fast_dllm"
         mask_token_id=151665,  # model-specific mask token ID
+        enforce_eager=True,
     )
 
     # Load tokenizer
