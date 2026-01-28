@@ -17,10 +17,18 @@ class FastdLLMV2SamplerForDiffusionLM(SamplerShiftLogits):
     def forward(self, seqs: list[SequenceBase], logits: torch.Tensor, temperatures: torch.Tensor,
                 top_p=None, top_k=None, margin_confidence=False, neg_entropy=False, threshold=0.95):
         attn_metadata = self.fetch_attn_metadata()
-        split_logits = torch.split(
-            logits, [len(seq) for seq in seqs] if attn_metadata.is_prefill 
-            else [attn_metadata.diffusion_block_size] * len(seqs), dim=0
-        )
+        # Compute split sizes from logits shape and number of sequences
+        num_seqs = len(seqs)
+        total_logits_tokens = logits.size(0)
+        
+        # Assume logits are evenly distributed across sequences
+        tokens_per_seq = total_logits_tokens // num_seqs
+        split_sizes = [tokens_per_seq] * num_seqs
+        # Handle remainder
+        if total_logits_tokens % num_seqs != 0:
+            split_sizes[-1] += total_logits_tokens % num_seqs
+        
+        split_logits = torch.split(logits, split_sizes, dim=0)
         
         accepted_ids_map = {}
         sampled_tokens_map = {}
