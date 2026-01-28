@@ -235,9 +235,6 @@ class D2FSequence(SequenceBase):
         self.new_tokens = state.get("new_tokens", 0)
         self.n_steps = state.get("n_steps", 0)
 
-        if self.block_mask is not None and self.block_mask.device.index != torch.cuda.current_device():
-            self.block_mask = self.block_mask.to(torch.cuda.current_device())
-
         self.diffusion_blocks = []
         pre_block = None
         for block_state in state["diffusion_blocks_state"]:
