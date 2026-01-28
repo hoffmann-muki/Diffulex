@@ -7,7 +7,7 @@ llm = Diffulex(
     model_path,
     model_name="fast_dllm_v2",  # or "dream", "llada", etc.
     tensor_parallel_size=2,
-    data_parallel_size=2,
+    data_parallel_size=1,
     gpu_memory_utilization=0.5,
     max_model_len=2048,
     decoding_strategy="fast_dllm",  # or "d2f", "fast_dllm"
