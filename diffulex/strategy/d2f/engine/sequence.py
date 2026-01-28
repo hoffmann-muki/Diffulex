@@ -213,7 +213,6 @@ class D2FSequence(SequenceBase):
         self.status = state["status"]
         self.token_ids = state["token_ids"]
         self.last_token = state["last_token"]
-        self.num_tokens = state["num_tokens"]
         self.num_prompt_tokens = state["num_prompt_tokens"]
         self.num_cached_tokens = state["num_cached_tokens"]
         self.block_table = state["block_table"]
