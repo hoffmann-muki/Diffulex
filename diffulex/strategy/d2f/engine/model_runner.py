@@ -284,7 +284,8 @@ class D2FModelRunner(ModelRunnerBase):
         input_ids, positions = self.prepare_prefill(seqs) if is_prefill else self.prepare_decode(seqs)
         temperatures = self.prepare_sample(seqs) if self.rank == 0 else None
         logits = self.run_model(input_ids, positions, is_prefill)
-        sample_output = self.sampler(logits, temperatures) if self.rank == 0 else None
+        # Sampler expects (seqs, logits, temperatures, ...)
+        sample_output = self.sampler(seqs, logits, temperatures) if self.rank == 0 else None
         reset_d2f_attn_metadata()
         return sample_output
 

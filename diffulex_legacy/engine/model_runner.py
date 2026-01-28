@@ -305,7 +305,7 @@ class ModelRunnerForCausalLM(ModelRunnerBase):
         logits = self.run_model(input_ids, positions, is_prefill)
         print(f"Ran model in {time.time() - s:.2f} seconds")
         s = time.time()
-        token_ids = self.sampler(logits, temperatures).tolist() if self.rank == 0 else None
+        token_ids = self.sampler(seqs, logits, temperatures).tolist() if self.rank == 0 else None
         print(f"Sampled tokens in {time.time() - s:.2f} seconds")
         reset_context_causal_lm()
         return token_ids
@@ -314,7 +314,7 @@ class ModelRunnerForCausalLM(ModelRunnerBase):
         input_ids, positions = self.prepare_prefill(seqs) if is_prefill else self.prepare_decode(seqs)
         temperatures = self.prepare_sample(seqs) if self.rank == 0 else None
         logits = self.run_model(input_ids, positions, is_prefill)
-        token_ids = self.sampler(logits, temperatures).tolist() if self.rank == 0 else None
+        token_ids = self.sampler(seqs, logits, temperatures).tolist() if self.rank == 0 else None
         reset_context_causal_lm()
         return token_ids
 
@@ -664,7 +664,7 @@ class ModelRunnerForDiffusionLM(ModelRunnerBase):
         logits = self.run_model(input_ids, positions, is_prefill)
         print(f"Ran model in {time.time() - s:.2f} seconds")
         s = time.time()
-        sample_output = self.sampler(logits, temperatures) if self.rank == 0 else None
+        sample_output = self.sampler(seqs, logits, temperatures) if self.rank == 0 else None
         print(f"Sampled tokens in {time.time() - s:.2f} seconds")
         reset_context_diffusion_lm()
         return sample_output
@@ -673,7 +673,7 @@ class ModelRunnerForDiffusionLM(ModelRunnerBase):
         input_ids, positions = self.prepare_prefill(seqs) if is_prefill else self.prepare_decode(seqs)
         temperatures = self.prepare_sample(seqs) if self.rank == 0 else None
         logits = self.run_model(input_ids, positions, is_prefill)
-        sample_output = self.sampler(logits, temperatures) if self.rank == 0 else None
+        sample_output = self.sampler(seqs, logits, temperatures) if self.rank == 0 else None
         reset_context_diffusion_lm()
         return sample_output
 
