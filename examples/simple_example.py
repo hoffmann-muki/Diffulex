@@ -12,7 +12,7 @@ if __name__ == '__main__':
         data_parallel_size=1,
         gpu_memory_utilization=0.5,
         max_model_len=2048,
-        decoding_strategy="fast_dllm",  # or "d2f", "fast_dllm"
+        decoding_strategy="block_diffusion",  # or "d2f", "fast_dllm"
         mask_token_id=151665,  # model-specific mask token ID
         enforce_eager=True,
     )
