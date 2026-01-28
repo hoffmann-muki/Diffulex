@@ -169,6 +169,9 @@ class D2FModelRunner(ModelRunnerBase):
             mem_block_to_diffusion_blocks_map = seq.mem_block_to_diffusion_blocks_map
             context_len = context_lens[seq_id_to_queue_id[seq_id]]
             for mem_block_idx in range(0, seq.num_blocks):
+                # Skip if block_table doesn't have this index
+                if mem_block_idx >= len(seq.block_table):
+                    break
                 start_idx = mem_block_idx * seq.block_size
                 end_idx = start_idx + seq.block_size
                 cur_map = mem_block_to_diffusion_blocks_map[mem_block_idx]
