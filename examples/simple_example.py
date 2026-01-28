@@ -1,3 +1,4 @@
+import torch.distributed as dist
 from diffulex import Diffulex, SamplingParams
 from transformers import AutoTokenizer
 
@@ -39,3 +40,6 @@ if __name__ == '__main__':
         print(f"Generated text: {output['text']}")
         print(f"Number of diffusion steps: {output['n_diff_steps']}")
         print(f"Token IDs: {output['token_ids']}")
+
+    if dist.is_initialized():
+        dist.destroy_process_group()
